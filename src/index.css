@@ -405,11 +405,82 @@ input {
 .log li {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 1rem;
   padding: 0.75rem 0.9rem;
   border-radius: 12px;
   background: var(--paper);
   border: 1px solid var(--line);
+}
+
+.decision-log-heading {
+  margin: 0.25rem 0 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+  color: var(--teal-deep);
+}
+
+.decision-log li.decision-ok {
+  border-left: 4px solid var(--sage);
+  background: color-mix(in srgb, var(--sage) 8%, var(--paper));
+}
+
+.decision-log li.decision-bad {
+  border-left: 4px solid var(--coral);
+  background: color-mix(in srgb, var(--coral) 8%, var(--paper));
+}
+
+.decision-identity {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.decision-from {
+  font-size: 0.85rem;
+  color: color-mix(in srgb, var(--ink) 65%, transparent);
+}
+
+.decision-subject {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: -0.02em;
+  color: var(--teal-deep);
+}
+
+.decision-action {
+  font-size: 0.9rem;
+}
+
+.playbook-report-summary {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--sage) 35%, var(--line));
+  background: color-mix(in srgb, var(--sage) 10%, var(--paper));
+  color: var(--sage);
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+.share-status {
+  margin: 0;
+  padding: 0.65rem 0.9rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
+}
+
+.share-status.share-ok {
+  background: color-mix(in srgb, var(--sage) 12%, white);
+  color: var(--sage);
+  border: 1px solid color-mix(in srgb, var(--sage) 30%, var(--line));
+}
+
+.share-status.share-fail {
+  background: color-mix(in srgb, var(--coral) 12%, white);
+  color: var(--coral);
+  border: 1px solid color-mix(in srgb, var(--coral) 30%, var(--line));
 }
 
 .row-actions {

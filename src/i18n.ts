@@ -102,6 +102,7 @@ export const ui = {
   },
   pathCompleteLabel: { en: 'Path complete', es: 'Ruta completa' },
   pathInProgress: { en: 'In progress', es: 'En progreso' },
+  pathNotStarted: { en: 'Not started', es: 'Sin empezar' },
   backToPath: { en: 'Back to path', es: 'Volver a la ruta' },
   pressureMode: { en: 'Pressure mode', es: 'Modo presión' },
   pressureTimer: { en: 'Soft timer', es: 'Temporizador suave' },
@@ -135,13 +136,53 @@ export const ui = {
   },
   certPrint: { en: 'Print local report', es: 'Imprimir reporte local' },
   certShare: { en: 'Share local summary', es: 'Compartir resumen local' },
+  shareCopied: {
+    en: 'Summary copied to clipboard.',
+    es: 'Resumen copiado al portapapeles.',
+  },
+  shareFailed: {
+    en: 'Could not share or copy the summary. Try print instead.',
+    es: 'No se pudo compartir ni copiar el resumen. Prueba imprimir.',
+  },
+  certDownloadPdf: {
+    en: 'Download PDF',
+    es: 'Descargar PDF',
+  },
+  certPdfWorking: {
+    en: 'Preparing PDF…',
+    es: 'Preparando PDF…',
+  },
+  certPdfFailed: {
+    en: 'Could not create the PDF. Try again or use print.',
+    es: 'No se pudo crear el PDF. Intenta de nuevo o usa imprimir.',
+  },
+  certModuleScores: {
+    en: 'Module scores',
+    es: 'Puntajes por módulo',
+  },
+  certGeneratedAt: {
+    en: 'Generated',
+    es: 'Generado',
+  },
+  certLocalEvidence: {
+    en: 'Local session evidence for the learner and manager — personal training proof kept on this device, not a compliance roster.',
+    es: 'Evidencia local de sesión para el aprendiz y el gerente — prueba personal de entrenamiento en este dispositivo, no un roster de cumplimiento.',
+  },
   certNotReady: {
     en: 'Complete all three Front Desk modules to unlock the cert-lite badge.',
     es: 'Completa los tres módulos de Recepción para desbloquear la insignia cert-lite.',
   },
+
   from: { en: 'From', es: 'De' },
   subject: { en: 'Subject', es: 'Asunto' },
   resultsDetail: { en: 'Decision log', es: 'Registro de decisiones' },
+  decisionCorrect: { en: 'Correct', es: 'Correcto' },
+  decisionIncorrect: { en: 'Incorrect', es: 'Incorrecto' },
+  yourAction: { en: 'Your action', es: 'Tu acción' },
+  playbookReportSummary: {
+    en: 'All playbook steps confirmed.',
+    es: 'Todos los pasos del playbook confirmados.',
+  },
   passHint: {
     en: 'Ready for the floor: escalate pressure + attachments; verify routine OTA mail in your systems.',
     es: 'Listo para el piso: escala presión + adjuntos; verifica correo OTA rutinario en tus sistemas.',

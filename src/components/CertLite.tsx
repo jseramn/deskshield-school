@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { FRONT_DESK_PATH_ID, getModulesForPath, getPath } from '../data/curriculum'
 import { t, ui } from '../i18n'
 import { isModuleComplete, pathComplete } from '../lib/progress'
+import { buildCertLiteReport, buildShareText } from '../lib/sessionReport'
 import type { Lang, ProgressState } from '../types'
 
 export interface CertLiteProps {
@@ -8,6 +10,18 @@ export interface CertLiteProps {
   progress: ProgressState
   onBack: () => void
   onBackCatalog: () => void
+}
+
+function isUserAbort(err: unknown): boolean {
+  return (
+    (typeof DOMException !== 'undefined' &&
+      err instanceof DOMException &&
+      err.name === 'AbortError') ||
+    (typeof err === 'object' &&
+      err !== null &&
+      'name' in err &&
+      (err as { name: string }).name === 'AbortError')
+  )
 }
 
 export default function CertLite({
@@ -19,25 +33,45 @@ export default function CertLite({
   const complete = pathComplete(FRONT_DESK_PATH_ID, progress)
   const path = getPath(FRONT_DESK_PATH_ID)
   const mods = getModulesForPath(FRONT_DESK_PATH_ID)
+  const report = complete ? buildCertLiteReport(progress, lang) : null
+  const [shareStatus, setShareStatus] = useState<'success' | 'failure' | null>(
+    null,
+  )
+  const [pdfStatus, setPdfStatus] = useState<'working' | 'failure' | null>(null)
 
   function handlePrint() {
     window.print()
   }
 
+  async function handleDownloadPdf() {
+    if (!report || pdfStatus === 'working') return
+    setPdfStatus('working')
+    try {
+      const { downloadCertLitePdf } = await import('../lib/pdfExport')
+      downloadCertLitePdf(report)
+      setPdfStatus(null)
+    } catch {
+      setPdfStatus('failure')
+    }
+  }
+
   async function handleShare() {
-    const summary = [
-      t(ui.certTitle, lang),
-      t(ui.certBadge, lang),
-      t(ui.certDisclaimer, lang),
-      '',
-      ...mods.map((mod) => {
-        const rec = progress.modules[mod.id]
-        const score = rec
-          ? `${rec.bestScore}/${rec.maxScore}`
-          : t(ui.moduleIncomplete, lang)
-        return `${t(mod.title, lang)}: ${score}`
-      }),
-    ].join('\n')
+    setShareStatus(null)
+    const summary = report
+      ? buildShareText(report)
+      : [
+          t(ui.certTitle, lang),
+          t(ui.certBadge, lang),
+          t(ui.certDisclaimer, lang),
+          '',
+          ...mods.map((mod) => {
+            const rec = progress.modules[mod.id]
+            const score = rec
+              ? `${rec.bestScore}/${rec.maxScore}`
+              : t(ui.moduleIncomplete, lang)
+            return `${t(mod.title, lang)}: ${score}`
+          }),
+        ].join('\n')
 
     if (navigator.share) {
       try {
@@ -46,15 +80,17 @@ export default function CertLite({
           text: summary,
         })
         return
-      } catch {
-        // fall through to clipboard
+      } catch (err) {
+        if (isUserAbort(err)) return
+        // Non-abort share failure — fall through to clipboard
       }
     }
 
     try {
       await navigator.clipboard.writeText(summary)
+      setShareStatus('success')
     } catch {
-      // ignore — print remains available
+      setShareStatus('failure')
     }
   }
 
@@ -68,12 +104,13 @@ export default function CertLite({
         <p className="hint print-banner-note">{t(ui.trainingBanner, lang)}</p>
       </div>
 
-      {complete ? (
+      {complete && report ? (
         <>
           <div className="cert-badge" role="status">
             <strong>{t(ui.certBadge, lang)}</strong>
             <span>{path ? t(path.title, lang) : 'Front Desk'}</span>
           </div>
+          <p className="cert-disclaimer">{t(ui.certLocalEvidence, lang)}</p>
           <p className="cert-disclaimer">{t(ui.certDisclaimer, lang)}</p>
 
           <ul className="cert-module-log">
@@ -93,8 +130,38 @@ export default function CertLite({
             })}
           </ul>
 
+          {pdfStatus && (
+            <p
+              className={`share-status ${pdfStatus === 'failure' ? 'share-fail' : ''}`}
+              role="status"
+            >
+              {pdfStatus === 'working'
+                ? t(ui.certPdfWorking, lang)
+                : t(ui.certPdfFailed, lang)}
+            </p>
+          )}
+
+          {shareStatus && (
+            <p
+              className={`share-status ${shareStatus === 'failure' ? 'share-fail' : 'share-ok'}`}
+              role="status"
+            >
+              {shareStatus === 'success'
+                ? t(ui.shareCopied, lang)
+                : t(ui.shareFailed, lang)}
+            </p>
+          )}
+
           <div className="row-actions cert-actions">
-            <button type="button" className="primary" onClick={handlePrint}>
+            <button
+              type="button"
+              className="primary"
+              onClick={handleDownloadPdf}
+              disabled={pdfStatus === 'working'}
+            >
+              {t(ui.certDownloadPdf, lang)}
+            </button>
+            <button type="button" className="secondary" onClick={handlePrint}>
               {t(ui.certPrint, lang)}
             </button>
             <button type="button" className="secondary" onClick={handleShare}>
