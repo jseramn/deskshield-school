@@ -135,10 +135,27 @@ export const ui = {
   },
   certPrint: { en: 'Print local report', es: 'Imprimir reporte local' },
   certShare: { en: 'Share local summary', es: 'Compartir resumen local' },
+  certDownloadPdf: {
+    en: 'Download PDF',
+    es: 'Descargar PDF',
+  },
+  certModuleScores: {
+    en: 'Module scores',
+    es: 'Puntajes por módulo',
+  },
+  certGeneratedAt: {
+    en: 'Generated',
+    es: 'Generado',
+  },
+  certLocalEvidence: {
+    en: 'Local session evidence for the learner and manager — personal training proof kept on this device, not a compliance roster.',
+    es: 'Evidencia local de sesión para el aprendiz y el gerente — prueba personal de entrenamiento en este dispositivo, no un roster de cumplimiento.',
+  },
   certNotReady: {
     en: 'Complete all three Front Desk modules to unlock the cert-lite badge.',
     es: 'Completa los tres módulos de Recepción para desbloquear la insignia cert-lite.',
   },
+
   from: { en: 'From', es: 'De' },
   subject: { en: 'Subject', es: 'Asunto' },
   resultsDetail: { en: 'Decision log', es: 'Registro de decisiones' },

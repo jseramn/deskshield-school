@@ -1,6 +1,7 @@
 import { FRONT_DESK_PATH_ID, getModulesForPath, getPath } from '../data/curriculum'
 import { t, ui } from '../i18n'
 import { isModuleComplete, pathComplete } from '../lib/progress'
+import { buildCertLiteReport, buildShareText } from '../lib/sessionReport'
 import type { Lang, ProgressState } from '../types'
 
 export interface CertLiteProps {
@@ -19,25 +20,34 @@ export default function CertLite({
   const complete = pathComplete(FRONT_DESK_PATH_ID, progress)
   const path = getPath(FRONT_DESK_PATH_ID)
   const mods = getModulesForPath(FRONT_DESK_PATH_ID)
+  const report = complete ? buildCertLiteReport(progress, lang) : null
 
   function handlePrint() {
     window.print()
   }
 
+  async function handleDownloadPdf() {
+    if (!report) return
+    const { downloadCertLitePdf } = await import('../lib/pdfExport')
+    downloadCertLitePdf(report)
+  }
+
   async function handleShare() {
-    const summary = [
-      t(ui.certTitle, lang),
-      t(ui.certBadge, lang),
-      t(ui.certDisclaimer, lang),
-      '',
-      ...mods.map((mod) => {
-        const rec = progress.modules[mod.id]
-        const score = rec
-          ? `${rec.bestScore}/${rec.maxScore}`
-          : t(ui.moduleIncomplete, lang)
-        return `${t(mod.title, lang)}: ${score}`
-      }),
-    ].join('\n')
+    const summary = report
+      ? buildShareText(report)
+      : [
+          t(ui.certTitle, lang),
+          t(ui.certBadge, lang),
+          t(ui.certDisclaimer, lang),
+          '',
+          ...mods.map((mod) => {
+            const rec = progress.modules[mod.id]
+            const score = rec
+              ? `${rec.bestScore}/${rec.maxScore}`
+              : t(ui.moduleIncomplete, lang)
+            return `${t(mod.title, lang)}: ${score}`
+          }),
+        ].join('\n')
 
     if (navigator.share) {
       try {
@@ -68,12 +78,13 @@ export default function CertLite({
         <p className="hint print-banner-note">{t(ui.trainingBanner, lang)}</p>
       </div>
 
-      {complete ? (
+      {complete && report ? (
         <>
           <div className="cert-badge" role="status">
             <strong>{t(ui.certBadge, lang)}</strong>
             <span>{path ? t(path.title, lang) : 'Front Desk'}</span>
           </div>
+          <p className="cert-disclaimer">{t(ui.certLocalEvidence, lang)}</p>
           <p className="cert-disclaimer">{t(ui.certDisclaimer, lang)}</p>
 
           <ul className="cert-module-log">
@@ -94,7 +105,10 @@ export default function CertLite({
           </ul>
 
           <div className="row-actions cert-actions">
-            <button type="button" className="primary" onClick={handlePrint}>
+            <button type="button" className="primary" onClick={handleDownloadPdf}>
+              {t(ui.certDownloadPdf, lang)}
+            </button>
+            <button type="button" className="secondary" onClick={handlePrint}>
               {t(ui.certPrint, lang)}
             </button>
             <button type="button" className="secondary" onClick={handleShare}>
