@@ -1,87 +1,150 @@
-import { useMemo, useState } from 'react'
-import { scenarios } from './data/scenarios'
+import { useState } from 'react'
+import CatalogHome from './components/CatalogHome'
+import CertLite from './components/CertLite'
+import DrillPlayer, { type DrillPlayerMode } from './components/DrillPlayer'
+import PathDetail from './components/PathDetail'
+import PlaybookDrill from './components/PlaybookDrill'
+import {
+  FRONT_DESK_PATH_ID,
+  MODULE_FULL_SHIFT,
+  modules,
+} from './data/curriculum'
+import { buildPressurePack, shiftScenarios } from './data/scenarios'
 import { t, ui } from './i18n'
-import type { ActionId, Decision, Lang, Localized, Screen } from './types'
+import {
+  firstIncompleteModuleId,
+  getLang,
+  isModuleUnlocked,
+  loadProgress,
+  markModuleComplete,
+  setLang,
+} from './lib/progress'
+import { passedDrill } from './lib/scoring'
+import type { Lang, ProgressState, Scenario, Screen } from './types'
 import './index.css'
 
-const SESSION_KEY = 'deskshield-v1'
-
-function loadLang(): Lang {
-  const raw = sessionStorage.getItem(SESSION_KEY)
-  if (!raw) return 'en'
-  try {
-    const parsed = JSON.parse(raw) as { lang?: Lang }
-    return parsed.lang === 'es' ? 'es' : 'en'
-  } catch {
-    return 'en'
-  }
-}
-
 export default function App() {
-  const [lang, setLang] = useState<Lang>(loadLang)
-  const [screen, setScreen] = useState<Screen>('home')
-  const [activeId, setActiveId] = useState<string | null>(null)
-  const [decisions, setDecisions] = useState<Decision[]>([])
+  const [progress, setProgress] = useState<ProgressState>(() => loadProgress())
+  const [lang, setLangState] = useState<Lang>(() => getLang(progress))
+  const [screen, setScreen] = useState<Screen>('catalog')
+  const [activePathId, setActivePathId] = useState(FRONT_DESK_PATH_ID)
+  const [activeModuleId, setActiveModuleId] = useState(MODULE_FULL_SHIFT)
+  const [drillScenarios, setDrillScenarios] = useState<Scenario[]>(shiftScenarios)
+  const [drillMode, setDrillMode] = useState<DrillPlayerMode>('inbox')
+  const [lastScore, setLastScore] = useState(0)
+  const [lastMaxScore, setLastMaxScore] = useState(shiftScenarios.length)
+  const [lockedNotice, setLockedNotice] = useState<string | null>(null)
+  const [launchNotice, setLaunchNotice] = useState<string | null>(null)
 
-  const completedIds = useMemo(
-    () => new Set(decisions.map((d) => d.scenarioId)),
-    [decisions],
-  )
-
-  const active = scenarios.find((s) => s.id === activeId) ?? null
-  const allDone = decisions.length >= scenarios.length
-  const score = decisions.filter((d) => d.correct).length
-
-  function persistLang(next: Lang) {
-    setLang(next)
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ lang: next }))
+  function refreshProgress(next?: ProgressState) {
+    const state = next ?? loadProgress()
+    setProgress(state)
+    return state
   }
 
   function toggleLang() {
-    persistLang(lang === 'en' ? 'es' : 'en')
+    const next = lang === 'en' ? 'es' : 'en'
+    const state = setLang(next)
+    setLangState(next)
+    refreshProgress(state)
   }
 
-  function decide(action: ActionId) {
-    if (!active) return
-    const correct = active.correct.includes(action)
-    const next: Decision = {
-      scenarioId: active.id,
-      action,
-      correct,
-    }
-    setDecisions((prev) => {
-      const filtered = prev.filter((d) => d.scenarioId !== active.id)
-      return [...filtered, next]
-    })
-    setScreen('feedback')
+  function goCatalog() {
+    setLockedNotice(null)
+    setLaunchNotice(null)
+    setScreen('catalog')
   }
 
-  function goNextFromFeedback() {
-    const done = new Set(decisions.map((d) => d.scenarioId))
-    if (done.size >= scenarios.length) {
-      setScreen('playbook')
-      setActiveId(null)
+  function openPath(pathId: string) {
+    setLockedNotice(null)
+    setLaunchNotice(null)
+    setActivePathId(pathId)
+    setScreen('path')
+  }
+
+  function openCert() {
+    setLockedNotice(null)
+    setLaunchNotice(null)
+    setScreen('cert')
+  }
+
+  function handleLockedSelect() {
+    setLockedNotice(t(ui.pathLockedHint, lang))
+  }
+
+  function startModule(moduleId: string) {
+    const state = refreshProgress()
+    if (!isModuleUnlocked(moduleId, state)) {
+      setLaunchNotice(t(ui.unlockHint, lang))
+      setScreen('path')
       return
     }
-    const nextMail = scenarios.find((s) => !done.has(s.id))
-    if (nextMail) {
-      setActiveId(nextMail.id)
-      setScreen('mail')
+
+    const mod = modules[moduleId]
+    if (!mod) return
+
+    setActivePathId(mod.pathId)
+    setActiveModuleId(moduleId)
+    setLockedNotice(null)
+    setLaunchNotice(null)
+    setLastScore(0)
+
+    if (mod.kind === 'inbox') {
+      setDrillScenarios(shiftScenarios)
+      setDrillMode('inbox')
+      setLastMaxScore(shiftScenarios.length)
+      setScreen('drill')
       return
     }
-    setScreen('inbox')
-    setActiveId(null)
+
+    if (mod.kind === 'pressure') {
+      const pack = buildPressurePack(shiftScenarios)
+      setDrillScenarios(pack)
+      setDrillMode('pressure')
+      setLastMaxScore(pack.length)
+      setScreen('drill')
+      return
+    }
+
+    if (mod.kind === 'playbook') {
+      setLastMaxScore(ui.playbookSteps.length)
+      setScreen('playbook-drill')
+    }
   }
 
-  function restart() {
-    setDecisions([])
-    setActiveId(null)
-    setScreen('home')
+  function handleContinue() {
+    const state = refreshProgress()
+    const nextId =
+      firstIncompleteModuleId(state.lastPathId ?? FRONT_DESK_PATH_ID, state) ??
+      firstIncompleteModuleId(FRONT_DESK_PATH_ID, state)
+    if (!nextId) {
+      openPath(FRONT_DESK_PATH_ID)
+      return
+    }
+    startModule(nextId)
   }
 
-  const lastDecision = active
-    ? decisions.find((d) => d.scenarioId === active.id)
-    : undefined
+  function handleDrillComplete(score: number) {
+    setLastScore(score)
+    setLastMaxScore(drillScenarios.length)
+    const next = markModuleComplete(activeModuleId, score, drillScenarios.length)
+    refreshProgress(next)
+    setScreen('report')
+  }
+
+  function handlePlaybookComplete(score: number, maxScore: number) {
+    setLastScore(score)
+    setLastMaxScore(maxScore)
+    const next = markModuleComplete(activeModuleId, score, maxScore)
+    refreshProgress(next)
+    setScreen('report')
+  }
+
+  function backFromReport() {
+    setLaunchNotice(null)
+    setScreen('path')
+    setActivePathId(FRONT_DESK_PATH_ID)
+  }
 
   return (
     <>
@@ -97,155 +160,52 @@ export default function App() {
           </button>
         </header>
 
-        {screen === 'home' && (
-          <section className="panel hero">
-            <div className="hero-copy">
-              <h1>{t(ui.brand, lang)}</h1>
-              <p>{t(ui.whyBody, lang)}</p>
-              <button
-                type="button"
-                className="primary"
-                onClick={() => setScreen('inbox')}
-              >
-                {t(ui.start, lang)}
-              </button>
-              <p className="hint">{t(ui.homeCtaHint, lang)}</p>
-            </div>
-            <aside className="hero-visual">
-              <h2>{t(ui.whyTitle, lang)}</h2>
-              <p>{t(ui.tagline, lang)}</p>
-            </aside>
-          </section>
-        )}
-
-        {screen === 'inbox' && (
-          <section className="panel">
-            <div className="inbox-head">
-              <h2>{t(ui.inbox, lang)}</h2>
-              <span className="hint">
-                {scenarios.length} {t(ui.unread, lang)} · {decisions.length}/
-                {scenarios.length}
-              </span>
-            </div>
-            <ul className="mail-list">
-              {scenarios.map((mail) => (
-                <li key={mail.id}>
-                  <button
-                    type="button"
-                    className={`mail-item${completedIds.has(mail.id) ? ' done' : ''}`}
-                    onClick={() => {
-                      setActiveId(mail.id)
-                      setScreen('mail')
-                    }}
-                  >
-                    <span className="from">{mail.from[lang]}</span>
-                    <span className="subject">{mail.subject[lang]}</span>
-                    <span className="preview">{mail.preview[lang]}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-            {allDone && (
-              <div className="row-actions" style={{ padding: '1rem 1.4rem 1.4rem' }}>
-                <button
-                  type="button"
-                  className="secondary"
-                  onClick={() => setScreen('playbook')}
-                >
-                  {t(ui.toPlaybook, lang)}
-                </button>
-              </div>
+        {screen === 'catalog' && (
+          <>
+            <CatalogHome
+              lang={lang}
+              progress={progress}
+              onOpenPath={openPath}
+              onContinue={handleContinue}
+              onLockedSelect={handleLockedSelect}
+              onOpenCert={openCert}
+            />
+            {lockedNotice && (
+              <p className="catalog-locked-msg" role="status">
+                {lockedNotice}
+              </p>
             )}
-          </section>
+          </>
         )}
 
-        {screen === 'mail' && active && (
-          <section className="panel mail-view">
-            <div className="meta">
-              <div>
-                <strong>{t(ui.from, lang)}:</strong> {active.from[lang]}
-              </div>
-              <div>
-                <strong>{t(ui.subject, lang)}:</strong> {active.subject[lang]}
-              </div>
-            </div>
-            <p className="body-text">{active.body[lang]}</p>
-            {active.attachment && (
-              <div className="attachment">
-                {t(ui.attachment, lang)}: {active.attachment[lang]}
-              </div>
-            )}
-            <h3 style={{ margin: 0, fontFamily: 'var(--font-display)' }}>
-              {t(ui.decide, lang)}
-            </h3>
-            <div className="actions">
-              {(Object.keys(ui.actions) as ActionId[]).map((action) => (
-                <button
-                  key={action}
-                  type="button"
-                  className={`action ${action === 'open' ? 'danger' : 'safe'}`}
-                  onClick={() => decide(action)}
-                >
-                  {t(ui.actions[action], lang)}
-                </button>
-              ))}
-            </div>
-            <button type="button" className="ghost" onClick={() => setScreen('inbox')}>
-              ← {t(ui.inbox, lang)}
-            </button>
-          </section>
+        {screen === 'path' && (
+          <PathDetail
+            pathId={activePathId}
+            lang={lang}
+            progress={progress}
+            lockedNotice={launchNotice}
+            onBack={goCatalog}
+            onStartModule={startModule}
+            onOpenCert={openCert}
+          />
         )}
 
-        {screen === 'feedback' && active && lastDecision && (
-          <section className="panel feedback">
-            <span className={`badge ${lastDecision.correct ? 'ok' : 'bad'}`}>
-              {lastDecision.correct ? t(ui.correct, lang) : t(ui.incorrect, lang)}
-            </span>
-            <h2>{active.subject[lang]}</h2>
-            <p>
-              {lastDecision.correct
-                ? active.whyCorrect[lang]
-                : active.whyWrong[lang]}
-            </p>
-            <div>
-              <strong>{t(ui.redFlags, lang)}</strong>
-              <ul className="flags">
-                {active.redFlags.map((flag: Localized) => (
-                  <li key={flag.en}>{flag[lang]}</li>
-                ))}
-              </ul>
-            </div>
-            <div className="row-actions">
-              <button type="button" className="secondary" onClick={goNextFromFeedback}>
-                {decisions.length >= scenarios.length
-                  ? t(ui.toPlaybook, lang)
-                  : t(ui.next, lang)}
-              </button>
-            </div>
-          </section>
+        {screen === 'drill' && (
+          <DrillPlayer
+            key={activeModuleId}
+            scenarios={drillScenarios}
+            lang={lang}
+            mode={drillMode}
+            onComplete={handleDrillComplete}
+          />
         )}
 
-        {screen === 'playbook' && (
-          <section className="panel playbook">
-            <h2>{t(ui.playbookTitle, lang)}</h2>
-            <ol>
-              {ui.playbookSteps.map((step) => (
-                <li key={step.en}>{t(step, lang)}</li>
-              ))}
-            </ol>
-            <div className="row-actions">
-              <button
-                type="button"
-                className="primary"
-                onClick={() => setScreen('report')}
-              >
-                {t(ui.finishReport, lang)}
-              </button>
-              <button type="button" className="ghost" onClick={() => setScreen('inbox')}>
-                {t(ui.inbox, lang)}
-              </button>
-            </div>
-          </section>
+        {screen === 'playbook-drill' && (
+          <PlaybookDrill
+            key={activeModuleId}
+            lang={lang}
+            onComplete={handlePlaybookComplete}
+          />
         )}
 
         {screen === 'report' && (
@@ -253,39 +213,33 @@ export default function App() {
             <h2>{t(ui.reportTitle, lang)}</h2>
             <div className="score-box">
               <strong>
-                {score}/{scenarios.length}
+                {lastScore}/{lastMaxScore}
               </strong>
               <span>{t(ui.score, lang)}</span>
             </div>
             <p className="hint">
-              {score >= Math.ceil(scenarios.length * 0.75)
+              {passedDrill(lastScore, lastMaxScore)
                 ? t(ui.passHint, lang)
                 : t(ui.failHint, lang)}
             </p>
-            <strong>{t(ui.resultsDetail, lang)}</strong>
-            <ul className="log">
-              {scenarios.map((s) => {
-                const d = decisions.find((x) => x.scenarioId === s.id)
-                return (
-                  <li key={s.id}>
-                    <span>{s.subject[lang]}</span>
-                    <span>
-                      {d
-                        ? `${t(ui.actions[d.action], lang)} · ${
-                            d.correct ? t(ui.correct, lang) : t(ui.incorrect, lang)
-                          }`
-                        : '—'}
-                    </span>
-                  </li>
-                )
-              })}
-            </ul>
             <div className="row-actions">
-              <button type="button" className="secondary" onClick={restart}>
-                {t(ui.restart, lang)}
+              <button type="button" className="secondary" onClick={backFromReport}>
+                {t(ui.backToPath, lang)}
+              </button>
+              <button type="button" className="ghost" onClick={goCatalog}>
+                {t(ui.backToCatalog, lang)}
               </button>
             </div>
           </section>
+        )}
+
+        {screen === 'cert' && (
+          <CertLite
+            lang={lang}
+            progress={progress}
+            onBack={() => openPath(FRONT_DESK_PATH_ID)}
+            onBackCatalog={goCatalog}
+          />
         )}
       </div>
     </>

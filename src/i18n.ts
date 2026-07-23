@@ -3,8 +3,8 @@ import type { ActionId, Lang } from './types'
 export const ui = {
   brand: { en: 'DeskShield', es: 'DeskShield' },
   tagline: {
-    en: 'Front-desk phishing training for small hotels',
-    es: 'Entrenamiento de phishing para recepción de hoteles pequeños',
+    en: 'Hotel role-path phishing school for small properties',
+    es: 'Escuela de phishing por rol para hoteles pequeños',
   },
   trainingBanner: {
     en: 'TRAINING MODE — Simulated emails only. No real malware. No live payment links.',
@@ -73,6 +73,71 @@ export const ui = {
   homeCtaHint: {
     en: '4 simulated messages · bilingual · hotel reception focus',
     es: '4 mensajes simulados · bilingüe · enfoque recepción hotelera',
+  },
+  schoolHome: { en: 'School Home', es: 'Inicio de la escuela' },
+  schoolIntro: {
+    en: 'Choose a role path. Front Desk is open; other roles are coming soon.',
+    es: 'Elige una ruta por rol. Recepción está abierta; los demás roles llegan pronto.',
+  },
+  continuePath: { en: 'Continue', es: 'Continuar' },
+  continueHint: {
+    en: 'Resume your Front Desk path at the next incomplete module.',
+    es: 'Retoma tu ruta de Recepción en el siguiente módulo incompleto.',
+  },
+  openPath: { en: 'Open path', es: 'Abrir ruta' },
+  pathLocked: { en: 'Coming soon', es: 'Próximamente' },
+  pathLockedHint: {
+    en: 'This role path is locked. No modules start from here.',
+    es: 'Esta ruta está bloqueada. No se inician módulos desde aquí.',
+  },
+  backToCatalog: { en: 'Back to School Home', es: 'Volver al inicio' },
+  pathOverview: { en: 'Path overview', es: 'Resumen de la ruta' },
+  moduleComplete: { en: 'Complete', es: 'Completado' },
+  moduleIncomplete: { en: 'Not started', es: 'Sin empezar' },
+  moduleLocked: { en: 'Locked', es: 'Bloqueado' },
+  startModule: { en: 'Start module', es: 'Iniciar módulo' },
+  unlockHint: {
+    en: 'Complete the previous module to unlock.',
+    es: 'Completa el módulo anterior para desbloquear.',
+  },
+  pathCompleteLabel: { en: 'Path complete', es: 'Ruta completa' },
+  pathInProgress: { en: 'In progress', es: 'En progreso' },
+  backToPath: { en: 'Back to path', es: 'Volver a la ruta' },
+  pressureMode: { en: 'Pressure mode', es: 'Modo presión' },
+  pressureTimer: { en: 'Soft timer', es: 'Temporizador suave' },
+  pressureTimerHint: {
+    en: 'Warning only — the drill does not end when time runs out.',
+    es: 'Solo aviso — el drill no termina cuando se acaba el tiempo.',
+  },
+  pressureTimerUp: {
+    en: "Time's up (warning) — finish at your pace",
+    es: 'Tiempo cumplido (aviso) — termina a tu ritmo',
+  },
+  playbookConfirm: { en: 'Confirm step done', es: 'Confirmar paso hecho' },
+  playbookConfirmed: { en: 'Confirmed', es: 'Confirmado' },
+  playbookConfirmHint: {
+    en: 'Confirm each step — this is not a read-only checklist.',
+    es: 'Confirma cada paso — no es una lista solo para leer.',
+  },
+  playbookProgress: { en: 'Steps confirmed', es: 'Pasos confirmados' },
+  viewCert: { en: 'View cert-lite badge', es: 'Ver insignia cert-lite' },
+  certTitle: {
+    en: 'Front Desk cert-lite (local)',
+    es: 'Cert-lite de Recepción (local)',
+  },
+  certBadge: {
+    en: 'Path complete — local training badge',
+    es: 'Ruta completa — insignia local de entrenamiento',
+  },
+  certDisclaimer: {
+    en: 'Local / non-verifiable. Not a compliance certificate, audit record, or remote roster. Saved only on this device — no cross-device sync.',
+    es: 'Local / no verificable. No es certificado de cumplimiento, auditoría ni roster remoto. Solo en este dispositivo — sin sincronización entre dispositivos.',
+  },
+  certPrint: { en: 'Print local report', es: 'Imprimir reporte local' },
+  certShare: { en: 'Share local summary', es: 'Compartir resumen local' },
+  certNotReady: {
+    en: 'Complete all three Front Desk modules to unlock the cert-lite badge.',
+    es: 'Completa los tres módulos de Recepción para desbloquear la insignia cert-lite.',
   },
   from: { en: 'From', es: 'De' },
   subject: { en: 'Subject', es: 'Asunto' },
