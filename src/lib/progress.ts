@@ -58,7 +58,11 @@ export function loadProgress(): ProgressState {
 }
 
 export function saveProgress(state: ProgressState): void {
-  localStorage.setItem(SCHOOL_PROGRESS_KEY, JSON.stringify(state))
+  try {
+    localStorage.setItem(SCHOOL_PROGRESS_KEY, JSON.stringify(state))
+  } catch {
+    // QuotaExceededError / private mode — keep in-memory progress for the session.
+  }
 }
 
 export function getLang(state: ProgressState = loadProgress()): Lang {
