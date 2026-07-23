@@ -37,15 +37,22 @@ export default function CertLite({
   const [shareStatus, setShareStatus] = useState<'success' | 'failure' | null>(
     null,
   )
+  const [pdfStatus, setPdfStatus] = useState<'working' | 'failure' | null>(null)
 
   function handlePrint() {
     window.print()
   }
 
   async function handleDownloadPdf() {
-    if (!report) return
-    const { downloadCertLitePdf } = await import('../lib/pdfExport')
-    downloadCertLitePdf(report)
+    if (!report || pdfStatus === 'working') return
+    setPdfStatus('working')
+    try {
+      const { downloadCertLitePdf } = await import('../lib/pdfExport')
+      downloadCertLitePdf(report)
+      setPdfStatus(null)
+    } catch {
+      setPdfStatus('failure')
+    }
   }
 
   async function handleShare() {
@@ -123,6 +130,17 @@ export default function CertLite({
             })}
           </ul>
 
+          {pdfStatus && (
+            <p
+              className={`share-status ${pdfStatus === 'failure' ? 'share-fail' : ''}`}
+              role="status"
+            >
+              {pdfStatus === 'working'
+                ? t(ui.certPdfWorking, lang)
+                : t(ui.certPdfFailed, lang)}
+            </p>
+          )}
+
           {shareStatus && (
             <p
               className={`share-status ${shareStatus === 'failure' ? 'share-fail' : 'share-ok'}`}
@@ -135,7 +153,12 @@ export default function CertLite({
           )}
 
           <div className="row-actions cert-actions">
-            <button type="button" className="primary" onClick={handleDownloadPdf}>
+            <button
+              type="button"
+              className="primary"
+              onClick={handleDownloadPdf}
+              disabled={pdfStatus === 'working'}
+            >
               {t(ui.certDownloadPdf, lang)}
             </button>
             <button type="button" className="secondary" onClick={handlePrint}>

@@ -18,7 +18,7 @@ export interface DrillPlayerProps {
 }
 
 /** Order decisions to match the scenarios list (presentation order). */
-function orderDecisions(
+export function orderDecisions(
   scenarios: Scenario[],
   decisions: Decision[],
 ): Decision[] {

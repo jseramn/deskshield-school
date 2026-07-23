@@ -66,6 +66,21 @@ describe('progress', () => {
     })
   })
 
+  describe('markModuleComplete bestScore retention', () => {
+    it('keeps the higher bestScore across retries (Math.max)', () => {
+      let state = emptyState()
+      state = markModuleComplete(MODULE_FULL_SHIFT, 2, 4, state)
+      expect(state.modules[MODULE_FULL_SHIFT].bestScore).toBe(2)
+
+      state = markModuleComplete(MODULE_FULL_SHIFT, 4, 4, state)
+      expect(state.modules[MODULE_FULL_SHIFT].bestScore).toBe(4)
+
+      state = markModuleComplete(MODULE_FULL_SHIFT, 1, 4, state)
+      expect(state.modules[MODULE_FULL_SHIFT].bestScore).toBe(4)
+      expect(state.modules[MODULE_FULL_SHIFT].maxScore).toBe(4)
+    })
+  })
+
   describe('unlock / pathComplete / firstIncomplete', () => {
     it('unlocks module 1 always; later modules need the previous complete', () => {
       const empty = emptyState()

@@ -148,6 +148,14 @@ export const ui = {
     en: 'Download PDF',
     es: 'Descargar PDF',
   },
+  certPdfWorking: {
+    en: 'Preparing PDF…',
+    es: 'Preparando PDF…',
+  },
+  certPdfFailed: {
+    en: 'Could not create the PDF. Try again or use print.',
+    es: 'No se pudo crear el PDF. Intenta de nuevo o usa imprimir.',
+  },
   certModuleScores: {
     en: 'Module scores',
     es: 'Puntajes por módulo',
