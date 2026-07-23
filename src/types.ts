@@ -28,4 +28,49 @@ export interface Decision {
   correct: boolean
 }
 
-export type Screen = 'home' | 'inbox' | 'mail' | 'feedback' | 'playbook' | 'report'
+export type DrillKind = 'inbox' | 'pressure' | 'playbook'
+
+export type PathStatus = 'playable' | 'locked'
+
+export interface Module {
+  id: string
+  pathId: string
+  kind: DrillKind
+  title: Localized
+  order: number
+}
+
+export interface Path {
+  id: string
+  status: PathStatus
+  title: Localized
+  moduleIds: string[]
+}
+
+export interface ModuleProgress {
+  completedAt: string
+  bestScore: number
+  maxScore: number
+}
+
+export interface ProgressState {
+  schemaVersion: 1
+  lang: Lang
+  modules: Record<string, ModuleProgress>
+  lastPathId?: string
+  lastModuleId?: string
+}
+
+/** School screens for WU2+; v1 screens kept until App shell is thinned. */
+export type Screen =
+  | 'home'
+  | 'inbox'
+  | 'mail'
+  | 'feedback'
+  | 'playbook'
+  | 'catalog'
+  | 'path'
+  | 'drill'
+  | 'playbook-drill'
+  | 'report'
+  | 'cert'

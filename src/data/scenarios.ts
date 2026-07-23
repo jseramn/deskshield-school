@@ -5,7 +5,7 @@ import type { Scenario } from '../types'
  * social-engineering themes (fake reservations, invoices, job CVs).
  * These are SAFE simulations — no malware payloads, no live links.
  */
-export const scenarios: Scenario[] = [
+export const shiftScenarios: Scenario[] = [
   {
     id: 'reservation-attachment',
     isPhish: true,
@@ -263,3 +263,17 @@ Booking.com Partner Communications`,
     },
   },
 ]
+
+
+/** @deprecated Prefer shiftScenarios; kept for v1 App until DrillPlayer extract. */
+export const scenarios = shiftScenarios
+
+/** Shallow-copy then Fisher–Yates shuffle for the pressure module remix. */
+export function buildPressurePack(source: Scenario[]): Scenario[] {
+  const copy = [...source]
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[copy[i], copy[j]] = [copy[j]!, copy[i]!]
+  }
+  return copy
+}
