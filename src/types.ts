@@ -61,13 +61,9 @@ export interface ProgressState {
   lastModuleId?: string
 }
 
-/** School screens for WU2+; v1 screens kept until App shell is thinned. */
+/** App shell screens. DrillPlayer owns inbox/mail/feedback internally. */
 export type Screen =
   | 'home'
-  | 'inbox'
-  | 'mail'
-  | 'feedback'
-  | 'playbook'
   | 'catalog'
   | 'path'
   | 'drill'

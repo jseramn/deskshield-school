@@ -265,9 +265,6 @@ Booking.com Partner Communications`,
 ]
 
 
-/** @deprecated Prefer shiftScenarios; kept for v1 App until DrillPlayer extract. */
-export const scenarios = shiftScenarios
-
 /** Shallow-copy then Fisher–Yates shuffle for the pressure module remix. */
 export function buildPressurePack(source: Scenario[]): Scenario[] {
   const copy = [...source]
