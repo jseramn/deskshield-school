@@ -13,7 +13,19 @@ export interface DrillPlayerProps {
   scenarios: Scenario[]
   lang: Lang
   mode: DrillPlayerMode
-  onComplete: (score: number) => void
+  /** Decisions in drill presentation order (scenarios array order). */
+  onComplete: (score: number, decisions: Decision[]) => void
+}
+
+/** Order decisions to match the scenarios list (presentation order). */
+function orderDecisions(
+  scenarios: Scenario[],
+  decisions: Decision[],
+): Decision[] {
+  const byId = new Map(decisions.map((d) => [d.scenarioId, d]))
+  return scenarios
+    .map((s) => byId.get(s.id))
+    .filter((d): d is Decision => Boolean(d))
 }
 
 function formatClock(totalSeconds: number): string {
@@ -75,10 +87,14 @@ export default function DrillPlayer({
     setPhase('feedback')
   }
 
+  function finishDrill() {
+    onComplete(score, orderDecisions(scenarios, decisions))
+  }
+
   function goNextFromFeedback() {
     const done = new Set(decisions.map((d) => d.scenarioId))
     if (done.size >= scenarios.length) {
-      onComplete(score)
+      finishDrill()
       return
     }
     const nextMail = scenarios.find((s) => !done.has(s.id))
@@ -146,11 +162,7 @@ export default function DrillPlayer({
           </ul>
           {allDone && (
             <div className="row-actions" style={{ padding: '1rem 1.4rem 1.4rem' }}>
-              <button
-                type="button"
-                className="primary"
-                onClick={() => onComplete(score)}
-              >
+              <button type="button" className="primary" onClick={finishDrill}>
                 {t(ui.finishReport, lang)}
               </button>
             </div>

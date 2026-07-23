@@ -20,7 +20,14 @@ import {
   setLang,
 } from './lib/progress'
 import { passedDrill } from './lib/scoring'
-import type { Lang, ProgressState, Scenario, Screen } from './types'
+import type {
+  Decision,
+  Lang,
+  NoticeKey,
+  ProgressState,
+  Scenario,
+  Screen,
+} from './types'
 import './index.css'
 
 export default function App() {
@@ -33,8 +40,10 @@ export default function App() {
   const [drillMode, setDrillMode] = useState<DrillPlayerMode>('inbox')
   const [lastScore, setLastScore] = useState(0)
   const [lastMaxScore, setLastMaxScore] = useState(shiftScenarios.length)
-  const [lockedNotice, setLockedNotice] = useState<string | null>(null)
-  const [launchNotice, setLaunchNotice] = useState<string | null>(null)
+  const [lastDecisions, setLastDecisions] = useState<Decision[]>([])
+  const [reportKind, setReportKind] = useState<'drill' | 'playbook'>('drill')
+  const [lockedNoticeKey, setLockedNoticeKey] = useState<NoticeKey | null>(null)
+  const [launchNoticeKey, setLaunchNoticeKey] = useState<NoticeKey | null>(null)
 
   function refreshProgress(next?: ProgressState) {
     const state = next ?? loadProgress()
@@ -50,32 +59,32 @@ export default function App() {
   }
 
   function goCatalog() {
-    setLockedNotice(null)
-    setLaunchNotice(null)
+    setLockedNoticeKey(null)
+    setLaunchNoticeKey(null)
     setScreen('catalog')
   }
 
   function openPath(pathId: string) {
-    setLockedNotice(null)
-    setLaunchNotice(null)
+    setLockedNoticeKey(null)
+    setLaunchNoticeKey(null)
     setActivePathId(pathId)
     setScreen('path')
   }
 
   function openCert() {
-    setLockedNotice(null)
-    setLaunchNotice(null)
+    setLockedNoticeKey(null)
+    setLaunchNoticeKey(null)
     setScreen('cert')
   }
 
   function handleLockedSelect() {
-    setLockedNotice(t(ui.pathLockedHint, lang))
+    setLockedNoticeKey('pathLockedHint')
   }
 
   function startModule(moduleId: string) {
     const state = refreshProgress()
     if (!isModuleUnlocked(moduleId, state)) {
-      setLaunchNotice(t(ui.unlockHint, lang))
+      setLaunchNoticeKey('unlockHint')
       setScreen('path')
       return
     }
@@ -85,14 +94,16 @@ export default function App() {
 
     setActivePathId(mod.pathId)
     setActiveModuleId(moduleId)
-    setLockedNotice(null)
-    setLaunchNotice(null)
+    setLockedNoticeKey(null)
+    setLaunchNoticeKey(null)
     setLastScore(0)
+    setLastDecisions([])
 
     if (mod.kind === 'inbox') {
       setDrillScenarios(shiftScenarios)
       setDrillMode('inbox')
       setLastMaxScore(shiftScenarios.length)
+      setReportKind('drill')
       setScreen('drill')
       return
     }
@@ -102,12 +113,14 @@ export default function App() {
       setDrillScenarios(pack)
       setDrillMode('pressure')
       setLastMaxScore(pack.length)
+      setReportKind('drill')
       setScreen('drill')
       return
     }
 
     if (mod.kind === 'playbook') {
       setLastMaxScore(ui.playbookSteps.length)
+      setReportKind('playbook')
       setScreen('playbook-drill')
     }
   }
@@ -124,9 +137,11 @@ export default function App() {
     startModule(nextId)
   }
 
-  function handleDrillComplete(score: number) {
+  function handleDrillComplete(score: number, decisions: Decision[]) {
     setLastScore(score)
     setLastMaxScore(drillScenarios.length)
+    setLastDecisions(decisions)
+    setReportKind('drill')
     const next = markModuleComplete(activeModuleId, score, drillScenarios.length)
     refreshProgress(next)
     setScreen('report')
@@ -135,13 +150,15 @@ export default function App() {
   function handlePlaybookComplete(score: number, maxScore: number) {
     setLastScore(score)
     setLastMaxScore(maxScore)
+    setLastDecisions([])
+    setReportKind('playbook')
     const next = markModuleComplete(activeModuleId, score, maxScore)
     refreshProgress(next)
     setScreen('report')
   }
 
   function backFromReport() {
-    setLaunchNotice(null)
+    setLaunchNoticeKey(null)
     setScreen('path')
     setActivePathId(FRONT_DESK_PATH_ID)
   }
@@ -170,9 +187,9 @@ export default function App() {
               onLockedSelect={handleLockedSelect}
               onOpenCert={openCert}
             />
-            {lockedNotice && (
+            {lockedNoticeKey && (
               <p className="catalog-locked-msg" role="status">
-                {lockedNotice}
+                {t(ui[lockedNoticeKey], lang)}
               </p>
             )}
           </>
@@ -183,7 +200,9 @@ export default function App() {
             pathId={activePathId}
             lang={lang}
             progress={progress}
-            lockedNotice={launchNotice}
+            lockedNotice={
+              launchNoticeKey ? t(ui[launchNoticeKey], lang) : null
+            }
             onBack={goCatalog}
             onStartModule={startModule}
             onOpenCert={openCert}
@@ -222,6 +241,57 @@ export default function App() {
                 ? t(ui.passHint, lang)
                 : t(ui.failHint, lang)}
             </p>
+
+            {reportKind === 'drill' && lastDecisions.length > 0 && (
+              <>
+                <h3 className="decision-log-heading">
+                  {t(ui.resultsDetail, lang)}
+                </h3>
+                <ul className="log decision-log">
+                  {lastDecisions.map((decision) => {
+                    const scenario = drillScenarios.find(
+                      (s) => s.id === decision.scenarioId,
+                    )
+                    if (!scenario) return null
+                    return (
+                      <li
+                        key={decision.scenarioId}
+                        className={
+                          decision.correct ? 'decision-ok' : 'decision-bad'
+                        }
+                      >
+                        <div className="decision-identity">
+                          <span className="decision-from">
+                            {t(ui.from, lang)}: {scenario.from[lang]}
+                          </span>
+                          <strong className="decision-subject">
+                            {scenario.subject[lang]}
+                          </strong>
+                          <span className="decision-action">
+                            {t(ui.yourAction, lang)}:{' '}
+                            {t(ui.actions[decision.action], lang)}
+                          </span>
+                        </div>
+                        <span
+                          className={`badge ${decision.correct ? 'ok' : 'bad'}`}
+                        >
+                          {decision.correct
+                            ? t(ui.decisionCorrect, lang)
+                            : t(ui.decisionIncorrect, lang)}
+                        </span>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </>
+            )}
+
+            {reportKind === 'playbook' && (
+              <p className="playbook-report-summary" role="status">
+                {t(ui.playbookReportSummary, lang)}
+              </p>
+            )}
+
             <div className="row-actions">
               <button type="button" className="secondary" onClick={backFromReport}>
                 {t(ui.backToPath, lang)}

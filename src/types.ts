@@ -69,3 +69,6 @@ export type Screen =
   | 'playbook-drill'
   | 'report'
   | 'cert'
+
+/** Notice keys stored in App so language toggle re-translates (R2-002). */
+export type NoticeKey = 'pathLockedHint' | 'unlockHint'

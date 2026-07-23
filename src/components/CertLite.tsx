@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { FRONT_DESK_PATH_ID, getModulesForPath, getPath } from '../data/curriculum'
 import { t, ui } from '../i18n'
 import { isModuleComplete, pathComplete } from '../lib/progress'
@@ -11,6 +12,18 @@ export interface CertLiteProps {
   onBackCatalog: () => void
 }
 
+function isUserAbort(err: unknown): boolean {
+  return (
+    (typeof DOMException !== 'undefined' &&
+      err instanceof DOMException &&
+      err.name === 'AbortError') ||
+    (typeof err === 'object' &&
+      err !== null &&
+      'name' in err &&
+      (err as { name: string }).name === 'AbortError')
+  )
+}
+
 export default function CertLite({
   lang,
   progress,
@@ -21,6 +34,9 @@ export default function CertLite({
   const path = getPath(FRONT_DESK_PATH_ID)
   const mods = getModulesForPath(FRONT_DESK_PATH_ID)
   const report = complete ? buildCertLiteReport(progress, lang) : null
+  const [shareStatus, setShareStatus] = useState<'success' | 'failure' | null>(
+    null,
+  )
 
   function handlePrint() {
     window.print()
@@ -33,6 +49,7 @@ export default function CertLite({
   }
 
   async function handleShare() {
+    setShareStatus(null)
     const summary = report
       ? buildShareText(report)
       : [
@@ -56,15 +73,17 @@ export default function CertLite({
           text: summary,
         })
         return
-      } catch {
-        // fall through to clipboard
+      } catch (err) {
+        if (isUserAbort(err)) return
+        // Non-abort share failure — fall through to clipboard
       }
     }
 
     try {
       await navigator.clipboard.writeText(summary)
+      setShareStatus('success')
     } catch {
-      // ignore — print remains available
+      setShareStatus('failure')
     }
   }
 
@@ -103,6 +122,17 @@ export default function CertLite({
               )
             })}
           </ul>
+
+          {shareStatus && (
+            <p
+              className={`share-status ${shareStatus === 'failure' ? 'share-fail' : 'share-ok'}`}
+              role="status"
+            >
+              {shareStatus === 'success'
+                ? t(ui.shareCopied, lang)
+                : t(ui.shareFailed, lang)}
+            </p>
+          )}
 
           <div className="row-actions cert-actions">
             <button type="button" className="primary" onClick={handleDownloadPdf}>

@@ -29,6 +29,12 @@ export default function PathDetail({
   const path = getPath(pathId)
   const mods = getModulesForPath(pathId)
   const done = pathComplete(pathId, progress)
+  const anyComplete = mods.some((m) => isModuleComplete(m.id, progress))
+  const pathStatusLabel = done
+    ? t(ui.pathCompleteLabel, lang)
+    : anyComplete
+      ? t(ui.pathInProgress, lang)
+      : t(ui.pathNotStarted, lang)
   const showCert = done && pathId === FRONT_DESK_PATH_ID
 
   if (!path) {
@@ -51,7 +57,7 @@ export default function PathDetail({
         <p className="hint">
           {t(ui.pathOverview, lang)}
           {' · '}
-          {done ? t(ui.pathCompleteLabel, lang) : t(ui.pathInProgress, lang)}
+          {pathStatusLabel}
         </p>
         {lockedNotice && <p className="path-notice">{lockedNotice}</p>}
         {showCert && (
