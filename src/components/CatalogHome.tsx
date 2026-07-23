@@ -9,6 +9,7 @@ export interface CatalogHomeProps {
   onOpenPath: (pathId: string) => void
   onContinue: () => void
   onLockedSelect: () => void
+  onOpenCert: () => void
 }
 
 export default function CatalogHome({
@@ -17,6 +18,7 @@ export default function CatalogHome({
   onOpenPath,
   onContinue,
   onLockedSelect,
+  onOpenCert,
 }: CatalogHomeProps) {
   const showContinue = hasIncompleteFrontDeskProgress(progress)
   const frontDeskDone = pathComplete(FRONT_DESK_PATH_ID, progress)
@@ -32,6 +34,14 @@ export default function CatalogHome({
               {t(ui.continuePath, lang)}
             </button>
             <p className="hint">{t(ui.continueHint, lang)}</p>
+          </div>
+        )}
+        {frontDeskDone && (
+          <div className="catalog-cert-cta">
+            <button type="button" className="secondary" onClick={onOpenCert}>
+              {t(ui.viewCert, lang)}
+            </button>
+            <p className="hint">{t(ui.certDisclaimer, lang)}</p>
           </div>
         )}
       </div>

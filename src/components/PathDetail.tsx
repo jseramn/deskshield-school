@@ -1,4 +1,4 @@
-import { getModulesForPath, getPath } from '../data/curriculum'
+import { FRONT_DESK_PATH_ID, getModulesForPath, getPath } from '../data/curriculum'
 import { t, ui } from '../i18n'
 import {
   isModuleComplete,
@@ -14,6 +14,7 @@ export interface PathDetailProps {
   lockedNotice?: string | null
   onBack: () => void
   onStartModule: (moduleId: string) => void
+  onOpenCert: () => void
 }
 
 export default function PathDetail({
@@ -23,10 +24,12 @@ export default function PathDetail({
   lockedNotice,
   onBack,
   onStartModule,
+  onOpenCert,
 }: PathDetailProps) {
   const path = getPath(pathId)
   const mods = getModulesForPath(pathId)
   const done = pathComplete(pathId, progress)
+  const showCert = done && pathId === FRONT_DESK_PATH_ID
 
   if (!path) {
     return (
@@ -51,6 +54,14 @@ export default function PathDetail({
           {done ? t(ui.pathCompleteLabel, lang) : t(ui.pathInProgress, lang)}
         </p>
         {lockedNotice && <p className="path-notice">{lockedNotice}</p>}
+        {showCert && (
+          <div className="path-cert-cta">
+            <button type="button" className="primary" onClick={onOpenCert}>
+              {t(ui.viewCert, lang)}
+            </button>
+            <p className="hint">{t(ui.certDisclaimer, lang)}</p>
+          </div>
+        )}
       </div>
 
       <ul className="module-list">

@@ -1,8 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { t, ui } from '../i18n'
 import type { ActionId, Decision, Lang, Localized, Scenario } from '../types'
 
 export type DrillPlayerMode = 'inbox' | 'pressure'
+
+/** Soft timer length for pressure mode (warning-only — does not hard-end). */
+export const PRESSURE_SOFT_SECONDS = 180
 
 type DrillPhase = 'inbox' | 'mail' | 'feedback'
 
@@ -11,6 +14,12 @@ export interface DrillPlayerProps {
   lang: Lang
   mode: DrillPlayerMode
   onComplete: (score: number) => void
+}
+
+function formatClock(totalSeconds: number): string {
+  const m = Math.floor(totalSeconds / 60)
+  const s = totalSeconds % 60
+  return `${m}:${s.toString().padStart(2, '0')}`
 }
 
 export default function DrillPlayer({
@@ -22,6 +31,25 @@ export default function DrillPlayer({
   const [phase, setPhase] = useState<DrillPhase>('inbox')
   const [activeId, setActiveId] = useState<string | null>(null)
   const [decisions, setDecisions] = useState<Decision[]>([])
+  const [secondsLeft, setSecondsLeft] = useState(PRESSURE_SOFT_SECONDS)
+  const [timerWarned, setTimerWarned] = useState(false)
+
+  useEffect(() => {
+    if (mode !== 'pressure') return
+    setSecondsLeft(PRESSURE_SOFT_SECONDS)
+    setTimerWarned(false)
+    const id = window.setInterval(() => {
+      setSecondsLeft((prev) => {
+        if (prev <= 1) {
+          window.clearInterval(id)
+          setTimerWarned(true)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+    return () => window.clearInterval(id)
+  }, [mode])
 
   const completedIds = useMemo(
     () => new Set(decisions.map((d) => d.scenarioId)),
@@ -67,21 +95,33 @@ export default function DrillPlayer({
     ? decisions.find((d) => d.scenarioId === active.id)
     : undefined
 
-  const modeHint =
-    mode === 'pressure'
-      ? lang === 'es'
-        ? 'Modo presión'
-        : 'Pressure mode'
-      : null
+  const pressureHud =
+    mode === 'pressure' ? (
+      <div
+        className={`pressure-timer${timerWarned ? ' warned' : ''}`}
+        role="status"
+        aria-live="polite"
+      >
+        <span className="pressure-mode-label">{t(ui.pressureMode, lang)}</span>
+        <span className="pressure-clock">
+          {timerWarned
+            ? t(ui.pressureTimerUp, lang)
+            : `${t(ui.pressureTimer, lang)} ${formatClock(secondsLeft)}`}
+        </span>
+        <span className="hint">{t(ui.pressureTimerHint, lang)}</span>
+      </div>
+    ) : null
 
   return (
     <>
+      {pressureHud}
+
       {phase === 'inbox' && (
         <section className="panel">
           <div className="inbox-head">
             <h2>{t(ui.inbox, lang)}</h2>
             <span className="hint">
-              {modeHint ? `${modeHint} · ` : ''}
+              {mode === 'pressure' ? `${t(ui.pressureMode, lang)} · ` : ''}
               {scenarios.length} {t(ui.unread, lang)} · {decisions.length}/
               {scenarios.length}
             </span>

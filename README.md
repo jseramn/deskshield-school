@@ -1,38 +1,39 @@
-# DeskShield
+# DeskShield School
 
-**Front-desk phishing training for small hotels**
+**Hotel role-path phishing school for small properties**
 
-DeskShield is a bilingual (English / Spanish) web trainer that simulates a hotel reception inbox. Front-desk staff practice spotting social-engineering lures inspired by publicly documented hospitality campaigns (for example RevengeHotels / TA558 themes: fake reservations, invoices, and job CVs), then follow a **5-minute incident playbook** and receive a **manager report card**.
+DeskShield is a bilingual (English / Spanish) static web school. Learners open a **School Home** catalog, choose a role path, and complete modules. **Front Desk** is playable today with three modules: full-shift inbox drill, pressure remix (shuffled + soft timer), and an interactive 5-minute playbook. Night Auditor, Reservations, and Manager paths are visible as coming soon.
 
-> **Training only.** All messages are simulated. There is no real malware, no live payment portals, and no outbound email.
+> **Training only.** All messages are simulated. There is no real malware, no live payment portals, and no outbound email. Progress and the cert-lite badge are **local / non-verifiable** on this device — not compliance, audit, or remote roster evidence.
 
 ## Problem statement
 
-Small hotels concentrate guest payment and reservation work on a few front-desk PCs, yet rarely get role-specific security practice. Attackers have used AI-assisted phishing against LatAm hospitality to deliver remote-access malware and steal card data. Generic awareness courses exist; DeskShield focuses on **reception workflows** and **bilingual** coaching.
+Small hotels concentrate guest payment and reservation work on a few front-desk PCs, yet rarely get role-specific security practice. Attackers have used AI-assisted phishing against LatAm hospitality to deliver remote-access malware and steal card data. Generic awareness courses exist; DeskShield focuses on **reception workflows**, **path progress**, and **bilingual** coaching.
 
 ## Solution overview
 
-1. Open a simulated reception inbox.
-2. Read each message and choose an action (report, open, escalate, treat as routine).
-3. Get immediate feedback with red flags.
-4. Review the first-5-minutes playbook.
-5. Share the shift report card with a manager.
+1. Open **School Home** and choose the Front Desk path (other roles stay locked).
+2. Complete modules in order: full shift → pressure remix → interactive playbook.
+3. Get immediate feedback with red flags on inbox/pressure decisions.
+4. Confirm each playbook step (not read-only).
+5. When the path is complete, open the **cert-lite** local badge and print/share the session report.
 
 ## Features
 
-- ES/EN UI toggle
-- 4 scenario pack (3 phishing + 1 routine OTA-style message)
-- Decide / feedback loop with red-flag teaching
-- 5-minute incident playbook
-- Session report card (local / session only)
-- Sticky training-mode banner
+- School catalog with four role paths (Front Desk playable)
+- Sequential Front Desk modules with Continue resume
+- ES/EN UI toggle (persisted in local progress)
+- Full-shift 4-scenario pack + pressure shuffle + warning-only soft timer
+- Interactive do/confirm playbook → report card
+- Cert-lite badge gated on path completion (local / non-verifiable)
+- Sticky training-mode banner (including print view)
 - Static deploy — no backend, no secrets
 
 ## Technology stack
 
 - React 19 + TypeScript
 - Vite 8
-- Session storage for language preference only
+- `localStorage` progress key `deskshield-school-v1` (one-time migrate from session lang)
 
 ## Installation
 
@@ -55,11 +56,10 @@ Static output is written to `dist/` and can be hosted on GitHub Pages, Netlify, 
 ## Usage guide
 
 1. Choose **EN** or **ES** in the top bar.
-2. Click **Start training shift**.
-3. Open each inbox message and decide what a receptionist should do.
-4. Read feedback — do not skip red flags.
-5. Open the playbook, then the report card.
-6. Retry until decisions are consistent.
+2. From School Home, open **Front Desk** (or **Continue** if you have incomplete progress).
+3. Start Module 1 (full shift), decide on each message, finish the report.
+4. Unlock and complete Module 2 (pressure) and Module 3 (playbook confirms).
+5. Open **cert-lite**, read the local/non-verifiable disclaimer, print or share.
 
 ## Screenshots
 
@@ -75,14 +75,13 @@ Static output is written to `dist/` and can be hosted on GitHub Pages, Netlify, 
 
 ## Demo video
 
-See [DEMO.md](./DEMO.md) for a 3–5 minute script aligned with TSOC requirements.
+See [DEMO.md](./DEMO.md) for a 3–5 minute script aligned with TSOC requirements (catalog → path → modules → cert-lite).
 
-## Future scope (post v1)
+## Future scope
 
-- More role packs (night auditor, reservations, F&B cashier)
-- Manager PDF export
+- Unlock Night Auditor, Reservations, and Manager paths
+- Manager PDF export / LMS packaging
 - Optional AI-generated scenario variants with human review
-- SCORM / LMS packaging
 - Partner localization QA for LatAm Spanish variants
 
 ## Team
