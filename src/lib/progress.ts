@@ -1,4 +1,9 @@
-import { FRONT_DESK_PATH_ID, getModulesForPath, getPath } from '../data/curriculum'
+import {
+  FRONT_DESK_PATH_ID,
+  getModulesForPath,
+  getPath,
+  modules,
+} from '../data/curriculum'
 import type { Lang, ProgressState } from '../types'
 
 export const SCHOOL_PROGRESS_KEY = 'deskshield-school-v1'
@@ -115,6 +120,23 @@ export function firstIncompleteModuleId(
 ): string | undefined {
   const mods = getModulesForPath(pathId)
   return mods.find((m) => !isModuleComplete(m.id, state))?.id
+}
+
+/**
+ * Sequential unlock: module 1 is always open; N+1 requires N complete.
+ * Unknown modules are locked.
+ */
+export function isModuleUnlocked(
+  moduleId: string,
+  state: ProgressState = loadProgress(),
+): boolean {
+  const mod = modules[moduleId]
+  if (!mod) return false
+  const pathMods = getModulesForPath(mod.pathId)
+  const idx = pathMods.findIndex((m) => m.id === moduleId)
+  if (idx < 0) return false
+  if (idx === 0) return true
+  return isModuleComplete(pathMods[idx - 1].id, state)
 }
 
 /** True when Front Desk has at least one completion but path is not finished. */

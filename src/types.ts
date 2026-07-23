@@ -63,7 +63,6 @@ export interface ProgressState {
 
 /** App shell screens. DrillPlayer owns inbox/mail/feedback internally. */
 export type Screen =
-  | 'home'
   | 'catalog'
   | 'path'
   | 'drill'
