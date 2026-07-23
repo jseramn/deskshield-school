@@ -53,6 +53,14 @@ npm run preview
 
 Static output is written to `dist/` and can be hosted on GitHub Pages, Netlify, Vercel, or any static host.
 
+### GitHub Pages (auto-deploy)
+
+Pushes to `main` build and deploy via [GitHub Actions](.github/workflows/deploy-pages.yml).
+
+Live site: https://jseramn.github.io/deskshield-school/
+
+Pages source is **GitHub Actions** (enabled on the repo).
+
 ## Usage guide
 
 1. Choose **EN** or **ES** in the top bar.
