@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
 export default defineConfig({
-  // Project Pages URL: https://jseramn.github.io/deskshield-school/
+  // Project Pages asset base (no live Pages site from this repo today).
   base: '/deskshield-school/',
   plugins: [react()],
   test: {

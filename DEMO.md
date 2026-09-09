@@ -11,7 +11,7 @@ Record with screen capture + voiceover, or use as a live operator script. Keep t
 | 1:00–2:30 | Live path | Toggle language → open **Front Desk** → start full-shift module → phishing reservation → **Report** → red flags → routine Booking-style mail → finish Module 1 (decision log on report). |
 | 2:30–3:30 | Pressure + playbook | Start pressure module (shuffled order + soft timer warning) → complete → interactive playbook: confirm each step → report card. |
 | 3:30–4:30 | Cert-lite + PDF | Show path complete → cert-lite badge → local/non-verifiable disclaimer → **Download PDF** → print-friendly report / share. Note: static React/Vite SPA, localStorage progress, no backend, training banner. |
-| 4:30–5:00 | Locked roles + close | Locked role paths (Night Auditor / Reservations / Manager); show GitHub + live URL. |
+| 4:30–5:00 | Locked roles + close | Locked role paths (Night Auditor / Reservations / Manager); show GitHub. There is no live Pages URL — demo from `npm run dev` or `npm run preview`. |
 
 ## Checklist before recording
 

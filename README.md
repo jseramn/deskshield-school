@@ -70,13 +70,11 @@ npm run preview
 
 Static output is written to `dist/` and can be hosted on GitHub Pages, Netlify, Vercel, or any static host.
 
-### GitHub Pages (auto-deploy)
+### GitHub Pages (workflow present, site not live)
 
-Pushes to `main` run lint + test, then build and deploy via [GitHub Actions](.github/workflows/deploy-pages.yml). Pull requests also run [CI](.github/workflows/ci.yml) lint + test.
+Pushes to `main` run lint + test, then build and upload via [GitHub Actions](.github/workflows/deploy-pages.yml). Pull requests also run [CI](.github/workflows/ci.yml) lint + test.
 
-Live site: https://jseramn.github.io/deskshield-school/
-
-Pages source is **GitHub Actions** (enabled on the repo). Favicon and assets use a Pages-safe base path (`/deskshield-school/`).
+There is **no live GitHub Pages URL** from this repository right now. Use `npm run dev`, or `npm run preview` after `npm run build`. Vite `base` is `/deskshield-school/` so a later project-Pages host can keep the same asset paths. Favicon and static assets already use that base.
 
 ## Usage guide
 
@@ -88,15 +86,21 @@ Pages source is **GitHub Actions** (enabled on the repo). Favicon and assets use
 
 ## Screenshots
 
-![Home](docs/screenshots/01-home.png)
+Inbox and message captures below are the **current Front Desk drill** (simulated training mail). There are no committed captures of School Home, the interactive playbook, the report card, or cert-lite — run the app locally for those screens.
 
-![Inbox](docs/screenshots/02-inbox.png)
+`docs/screenshots/deskshield-school-thumbnail.jpg` (and `.png`) is a **promotional mock**, not a screenshot of the app. Its inbox rows are invented for the graphic.
 
-![Message decision](docs/screenshots/03-mail.png)
+`01-home.png` is an **older landing** (“Start training shift”), not the current School Home catalog.
 
-![Playbook](docs/screenshots/04-playbook.png)
+![Older landing](docs/screenshots/01-home.png)
 
-![Report card](docs/screenshots/05-report.png)
+![Reception inbox (four simulated messages)](docs/screenshots/02-inbox.png)
+
+![Reservation phishing decision](docs/screenshots/03-mail.png)
+
+![Invoice phishing decision](docs/screenshots/04-playbook.png)
+
+`04-playbook.png` and `05-report.png` are the same invoice decision screen, not the playbook or report card. `05-report.png` is omitted here to avoid a misleading caption.
 
 ## Demo walkthrough
 
